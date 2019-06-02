@@ -6,6 +6,7 @@ Holds
 from collections import deque
 import random
 import argparse
+import time
 
 
 class Snake:
@@ -258,6 +259,8 @@ class SnakeGame:
             not self.snake.bite() and
             not self.snake.escape(self.board_size)
         ):
+
+            time.sleep(self.speed)
             self.snake.take_step()
 
             if self.snake.eat(self.apple):
