@@ -3,6 +3,8 @@ import random
 import time
 import itertools as it
 
+__all__ = ['SnakeGame']
+
 
 class Snake:
     """
@@ -45,7 +47,6 @@ class Snake:
         :attr:`velocity` it would effectively allow them to go from up
         to down within 1 game tick as they could do this by pressing
         left or right first.
-
 
     """
 
