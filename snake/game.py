@@ -1,3 +1,10 @@
+"""
+Holds the snake game.
+
+The only thing necessary to run a game of snake is :class:`.SnakeGame`.
+
+"""
+
 from collections import deque
 import random
 import time
@@ -31,22 +38,9 @@ class Snake:
         A :class:`tuple` of the form ``(1, 0)``, which determines how
         the position of the snakes's head changes at every step.
 
-    velocity_queue : :class:`tuple`
-        A :class:`tuple` of the form ``(1, 0)``, which determines the
-        :attr:`velocity` the snake will have the next time
-        :meth:`take_step` is called. This provides a buffer the user
-        can modify instead of modifying :attr:`velocity` directly. The
-        reason :attr:`velocity` cannot be modified directly is because
-        if the current velocity is going up the user is not allowed to
-        change it to down in 1 game tick. If the user was allowed to
-        modify :attr:`velocity`, they could first overwrite the
-        :attr:`velocity` to right or left and then to down.
-        This could happen within 1 game tick, as the user inputs
-        commands outside of the game loop and multiple commands can
-        be issued within 1 tick. If the user was allowed to change
-        :attr:`velocity` it would effectively allow them to go from up
-        to down within 1 game tick as they could do this by pressing
-        left or right first.
+    velocity_queue : :class:`collections.deque`
+        A :class:`deque` for the movement directions the snake will
+        take the next few times it moves.
 
     """
 
@@ -82,12 +76,36 @@ class Snake:
         self.body.popleft()
 
     def _valid_velocity(self, velocity):
+        """
+        Check if `velocity` is valid.
+
+        A snake velocity is invalid if the snake is going up and the
+        `velocity` is down, or vice versa. Equally, `velocity` is
+        invalid if the snake is going left and `velocity` is right and
+        vice versa.
+
+        Parameters
+        ----------
+        velocity : :class:`tuple`
+            A :class:`tuple` of the form ``(1, 0)`` representing a
+            possible snake velocity.
+
+        Returns
+        -------
+        :class:`bool`
+            ``True`` if `velocity` is valid and ``False`` otherwise.
+
+        """
+
         invalid = {
             frozenset({(0, 1), (0, -1)}),
             frozenset({(1, 0), (-1, 0)})
         }
+        valid = {
+            (0, 1), (0, -1), (1, 0), (-1, 0)
+        }
         velocities = frozenset({velocity, self.velocity})
-        return velocities not in invalid
+        return velocities not in invalid and velocity in valid
 
     def hit(self, walls):
         """
@@ -95,8 +113,8 @@ class Snake:
 
         Parameters
         ----------
-        walls : :class:`set`
-            A :class:`set` of the form
+        walls : :class:`frozenset`
+            A :class:`frozenset` of the form
 
             .. code-block:: python
 
@@ -138,6 +156,8 @@ class Snake:
         Parameters
         ----------
         board_size : :class:`tuple`
+            A :class:`tuple` of the form ``(21, 33)`` represting the
+            size of the board in the x and y directions.
 
         Returns
         -------
@@ -194,6 +214,26 @@ class SnakeGame:
     """
     Represent a game of snake.
 
+    The game can be run with :meth:`run`. The game runs in a self
+    contained loop and will not take input from the keyboard or
+    display itself on the screen. The game is interacted with purely
+    programatically. However, you can write code that captures keyboard
+    input and sends it to the game via the methods in this class. You
+    can also write code that looks at the state of the game, as
+    contained in this class, and writes it to the screen. This is what
+    :class:`.GameIO` does.
+
+    The snake is controlled by calling by setting its movment
+    direction. This can be done with
+    :meth:`queue_snake_movement_direction`. The user is
+    will use this method to queue which direction the snake will move
+    in the next time the snake takes a step. The queue allows the user
+    to queue several steps ahead, which results in the game feeling
+    more responsive when played.
+
+    :class:`SnakeGame` can be initialized with walls, allowing the
+    user to create a level.
+
     Attributes
     ----------
     running : :class:`bool`
@@ -206,8 +246,8 @@ class SnakeGame:
     _snake : :class:`.Snake`
         Represents the snake.
 
-    _walls : :class:`set`
-        A :class:`set` of the form
+    _walls : :class:`frozenset`
+        A :class:`frozenset` of the form
 
         .. code-block:: python
 
@@ -234,8 +274,8 @@ class SnakeGame:
             A :class:`tuple` of the form ``(23, 12)`` which represents
             the size of the board in the x and y directions.
 
-        walls : :class:`set`
-            A :class:`set` of the form
+        walls : :class:`frozenset`
+            A :class:`frozenset` of the form
 
             .. code-block:: python
 
@@ -258,9 +298,9 @@ class SnakeGame:
         self._snake = Snake()
         self._walls = walls
         self._speed = speed
-        self.generate_new_apple()
+        self._generate_new_apple()
 
-    def generate_new_apple(self):
+    def _generate_new_apple(self):
         """
         Generate new :attr:`_apple` coordinates.
 
@@ -301,33 +341,103 @@ class SnakeGame:
             self._snake.take_step()
 
             if self._snake.eat(self._apple):
-                self.generate_new_apple()
+                self._generate_new_apple()
         self.running = False
 
-    def get_snake_velocity(self):
+    def get_velocity(self):
         """
+        Returns the next step the snake will take.
+
+        Returns
+        -------
+        :class:`tuple`
+            The :class:`tuple` can be one of ``(0, 1)``, ``(0, -1)``,
+            ``(1, 0)`` or ``(-1, 0)``, representing the next step the
+            snake will take.
 
         """
 
-        return self._snake.velocity
+        if self._snake.velocity_queue:
+            return self._snake.velocity_queue[0]
+        else:
+            return self._snake.velocity
 
-    def queue_snake_velocity(self, x, y):
+    def queue_snake_movement_direction(self, direction):
+        """
+        Queue a movement direction for the snake.
+
+        This methods allows the caller to queue multiple directions,
+        which will be resolved at a rate of one per step.
+
+        Parameters
+        ----------
+        direction : :class:`str`
+            Can be ``'up'``, ``'down'``, ``'right'`` or ``'left'`` to
+            signifiy the movement direction the snake will have the
+            when it moves.
+
+        Returns
+        -------
+        :class:`bool`
+            ``True`` if a movement direction was successfully queued
+            and ``False`` otherwise.
+
         """
 
-        """
+        if direction == 'up':
+            velocity = (0, 1)
+        elif direction == 'down':
+            velocity = (0, -1)
+        elif direction == 'right':
+            velocity = (1, 0)
+        elif direction == 'left':
+            velocity = (-1, 0)
 
         if len(self._snake.velocity_queue) < 5:
-            self._snake.velocity_queue.append((x, y))
+            self._snake.velocity_queue.append(velocity)
+            return True
+
+        return False
 
     def get_snake(self):
         """
+        Return the coordinates of the snake's body.
+
+        Returns
+        -------
+        body : :class:`tuple`
+            A :class:`tuple` of the following form
+
+            .. code-block:: python
+
+                body = (
+                    (0, 0),
+                    (0, 1),
+                    (0, 2)
+                )
+
+            holding the coordinates of every body piece of the snake.
+            The snake's head is at the index ``-1`` while its tail is
+            at the index ``0``.
 
         """
 
-        return self._snake.body
+        return tuple(self._snake.body)
 
     def get_walls(self):
         """
+        Return the coordinates of the walls.
+
+        Returns
+        -------
+        :class:`frozenset`
+            A :class:`frozenset` of the form
+
+            .. code-block:: python
+
+                walls = {(0,2), (3, 4), (5,4)}
+
+            holding the coordinates of each bit of the walls.
 
         """
 
@@ -335,6 +445,13 @@ class SnakeGame:
 
     def get_apple(self):
         """
+        Return the coordinates of the apple.
+
+        Returns
+        -------
+        :class:`tuple`
+            A :class:`tuple` of the form ``(21, 12)``, holding the
+            coordinates of the apple the snake is meant to eat.
 
         """
 
@@ -342,6 +459,13 @@ class SnakeGame:
 
     def get_board_size(self):
         """
+        Return the board size.
+
+        Returns
+        -------
+        :class:`tuple`
+            A :class:`tuple` of the form ``(23, 12)`` which represents
+            the size of the board in the x and y directions.
 
         """
 
