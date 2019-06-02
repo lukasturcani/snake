@@ -5,7 +5,8 @@
 This is a simple snake game. The purpose of this was to create a game
 I can use for reinforcement learning, see
 https://github.com/lukasturcani/dnn, but the game can be played by
-itself. The docs for this game are available at .
+itself. The docs for this game are available at
+https://ltsnake.readthedocs.io.
 
 The game can be run from the command line with::
 
