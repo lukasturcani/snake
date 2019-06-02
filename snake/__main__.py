@@ -41,6 +41,13 @@ def get_args():
         help='The amount of seconds between each step.',
         default=0.5
     )
+    parser.add_argument(
+        '--view_speed',
+        type=float,
+        help='The amount of seconds between each redner.',
+        default=0.2
+    )
+
     return parser.parse_args()
 
 
@@ -63,7 +70,7 @@ def main():
     game_thread.start()
     GameIO(
         game=game,
-        view_speed=0.2
+        view_speed=args.view_speed
     )
     game_thread.join()
 
