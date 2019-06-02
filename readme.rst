@@ -11,11 +11,11 @@ The game can be run from the command line with::
 
     $ python snake
 
-but options are available too, see::
+but options are available too, for more details see::
 
     $ python snake --help
 
-for more details. For example, the speed can be altered and walls can
+For example, the speed can be altered and walls can
 be added to the level::
 
     $ python snake --speed 0.2 --walls 10 10 10 11 10 12 10 13 10 14
