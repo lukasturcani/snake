@@ -8,6 +8,7 @@ import random
 import argparse
 import time
 import curses
+import itertools as it
 
 
 class Snake:
@@ -35,6 +36,23 @@ class Snake:
         A :class:`tuple` of the form ``(1, 0)``, which determines how
         the position of the snakes's head changes at every step.
 
+    next_velocity : :class:`tuple`
+        A :class:`tuple` of the form ``(1, 0)``, which determines the
+        :attr:`velocity` the snake will have the next time
+        :meth:`take_step` is called. This provides a buffer the user
+        can modify instead of modifying :attr:`velocity` directly. The
+        reason :attr:`velocity` cannot be modified directly is because
+        if the current velocity is going up the user is not allowed to
+        change it to down in 1 game tick. If the user was allowed to
+        modify :attr:`velocity`, they could first overwrite the
+        :attr:`velocity` to right or left and then to down.
+        This could happen within 1 game tick, as the user inputs
+        commands outside of the game loop and multiple commands can
+        be issued within 1 tick. If the user was allowed to change
+        :attr:`velocity` it would effectively allow them to go from up
+        to down within 1 game tick as they could do this by pressing
+        left or right first.
+
     """
 
     def __init__(self):
@@ -45,6 +63,7 @@ class Snake:
 
         self.body = deque([(0, 0)])
         self.velocity = (1, 0)
+        self.next_velocity = (1, 0)
 
     def take_step(self):
         """
@@ -56,6 +75,7 @@ class Snake:
 
         """
 
+        self.velocity = self.next_velocity
         head_x, head_y = self.body[-1]
         velocity_x, velocity_y = self.velocity
         new_head = head_x + velocity_x, head_y + velocity_y
@@ -240,10 +260,16 @@ class SnakeGame:
 
         """
 
+        # This is a terrible implementation performance-wise but it's
+        # pretty robust. It prevents the generation of the apple at the
+        # location of any walls or where snake currently is.
         board_x, board_y = self.board_size
-        apple_x = random.randint(0, board_x-1)
-        apple_y = random.randint(0, board_y-1)
-        self.apple = (apple_x, apple_y)
+        positions = it.product(range(0, board_x), range(0, board_y))
+        invalid_positions = self.walls | set(self.snake.body)
+        valid_positions = [
+            pos for pos in positions if pos not in invalid_positions
+        ]
+        self.apple = random.choice(valid_positions)
 
     def run(self, stdscr):
         """
