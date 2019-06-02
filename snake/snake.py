@@ -7,6 +7,7 @@ from collections import deque
 import random
 import argparse
 import time
+import curses
 
 
 class Snake:
@@ -119,17 +120,17 @@ class Snake:
 
         """
 
-        min_x = min(self.body, key=lambda piece: piece[0])
-        max_x = max(self.body, key=lambda piece: piece[0])
-        min_y = min(self.body, key=lambda piece: piece[1])
-        max_y = max(self.body, key=lambda piece: piece[1])
+        min_x = min(x for x, y in self.body)
+        max_x = max(x for x, y in self.body)
+        min_y = min(y for x, y in self.body)
+        max_y = max(y for x, y in self.body)
 
         board_x, board_y = board_size
         return (
             min_x < 0 or
             min_y < 0 or
-            max_x > board_x or
-            max_y > board_y
+            max_x >= board_x or
+            max_y >= board_y
         )
 
     def eat(self, apple):
@@ -240,11 +241,11 @@ class SnakeGame:
         """
 
         board_x, board_y = self.board_size
-        apple_x = random.randint(0, board_x)
-        apple_y = random.randint(0, board_y)
+        apple_x = random.randint(0, board_x-1)
+        apple_y = random.randint(0, board_y-1)
         self.apple = (apple_x, apple_y)
 
-    def run(self):
+    def run(self, stdscr):
         """
         Run the game.
 
@@ -254,20 +255,22 @@ class SnakeGame:
 
         """
 
-        viewer = GameViewer()
+        viewer = GameViewer(self, stdscr)
+
         while (
             not self.snake.hit(self.walls) and
             not self.snake.bite() and
             not self.snake.escape(self.board_size)
         ):
 
+            viewer.view()
             time.sleep(self.speed)
             self.snake.take_step()
 
             if self.snake.eat(self.apple):
                 self.generate_new_apple()
 
-            viewer.view(self)
+        viewer.close()
 
 
 class GameViewer:
@@ -276,14 +279,24 @@ class GameViewer:
 
     """
 
-    def view(self, game):
+    def __init__(self, game, stdscr):
+        """
+
+        """
+
+        self.game = game
+        self.stdscr = stdscr
+        self.stdscr.keypad(True)
+        curses.noecho()
+        curses.cbreak()
+        curses.curs_set(0)
+
+        width, height = game.board_size
+        self.game_window = curses.newwin(height+2, width+2, 0, 0)
+
+    def view(self):
         """
         Generate a new game view.
-
-        Parameters
-        ----------
-        game : :class:`.SnakeGame`
-            The game to be viewed.
 
         Returns
         -------
@@ -291,7 +304,25 @@ class GameViewer:
 
         """
 
-        ...
+        self.game_window.clear()
+        self.game_window.refresh()
+        self.game_window.border()
+        for x, y in self.game.walls:
+            self.game_window.addch(y+1, x+1, '█')
+
+        for x, y in self.game.snake.body:
+            self.game_window.addch(y+1, x+1, 'X')
+
+        apple_x, apple_y = self.game.apple
+        self.game_window.addch(apple_y+1, apple_x+1, 'O')
+
+        self.game_window.refresh()
+
+    def close(self):
+        curses.nocbreak()
+        self.stdscr.keypad(False)
+        curses.echo()
+        curses.endwin()
 
 
 def main():
@@ -341,7 +372,7 @@ def main():
         random_seed=args.random_seed
     )
 
-    game.run()
+    curses.wrapper(game.run)
 
 
 if __name__ == '__main__':
