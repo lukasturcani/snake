@@ -184,10 +184,10 @@ class GameIO:
             input_bytes.append(key)
 
             if input_bytes == up:
-                self._game.queue_snake_velocity(0, 1)
+                self._game.queue_snake_movement_direction('up')
             elif input_bytes == down:
-                self._game.queue_snake_velocity(0, -1)
+                self._game.queue_snake_movement_direction('down')
             elif input_bytes == left:
-                self._game.queue_snake_velocity(-1, 0)
+                self._game.queue_snake_movement_direction('left')
             elif input_bytes == right:
-                self._game.queue_snake_velocity(1, 0)
+                self._game.queue_snake_movement_direction('right')
