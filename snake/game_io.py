@@ -109,7 +109,7 @@ class GameIO:
             time.sleep(self._view_speed)
 
         # When the game stops, do a cleanup.
-        self._end()
+        self._cleanup()
         input_thread.join()
 
     def _render(self):

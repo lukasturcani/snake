@@ -1,5 +1,5 @@
 """
-
+Runs a game of snake.
 
 """
 
