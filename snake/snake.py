@@ -1,5 +1,5 @@
 """
-Holds
+A very simple snake game.
 
 """
 
@@ -254,6 +254,7 @@ class SnakeGame:
 
         """
 
+        viewer = GameViewer()
         while (
             not self.snake.hit(self.walls) and
             not self.snake.bite() and
@@ -265,6 +266,32 @@ class SnakeGame:
 
             if self.snake.eat(self.apple):
                 self.generate_new_apple()
+
+            viewer.view(self)
+
+
+class GameViewer:
+    """
+    Shows the game on the screen.
+
+    """
+
+    def view(self, game):
+        """
+        Generate a new game view.
+
+        Parameters
+        ----------
+        game : :class:`.SnakeGame`
+            The game to be viewed.
+
+        Returns
+        -------
+        None : :class:`NoneType`
+
+        """
+
+        ...
 
 
 def main():
