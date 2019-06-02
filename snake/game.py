@@ -316,7 +316,8 @@ class SnakeGame:
 
         """
 
-        self._snake.velocity_queue.append((x, y))
+        if len(self._snake.velocity_queue) < 5:
+            self._snake.velocity_queue.append((x, y))
 
     def get_snake(self):
         """
