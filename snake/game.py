@@ -364,8 +364,9 @@ class SnakeGame:
         """
         Queue a movement direction for the snake.
 
-        This method allows the caller to queue multiple directions,
-        which will be resolved at a rate of one per step.
+        When this method is called multiple times between snake steps,
+        it allows the caller to queue multiple directions, which will
+        be resolved at a rate of one per step.
 
         Parameters
         ----------
