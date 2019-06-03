@@ -2,7 +2,6 @@ snake.game module
 =================
 
 .. automodule:: snake.game
-    :members:
+    :members: Snake, SnakeGame
     :undoc-members:
     :show-inheritance:
-    :hidden-members:
