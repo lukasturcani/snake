@@ -5,3 +5,4 @@ snake.game module
     :members:
     :undoc-members:
     :show-inheritance:
+    :hidden-members:
