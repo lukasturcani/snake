@@ -222,11 +222,10 @@ class SnakeGame:
     at the state of the game, as contained in this class, and writes
     it to the screen. :class:`.GameIO` does both of these things.
 
-    The snake is controlled by calling by setting its movment
-    direction. This can be done with
-    :meth:`queue_snake_movement_direction`. The user is
-    will use this method to queue which direction the snake will move
-    in the next time the snake takes a step. The queue allows the user
+    The snake is controlled by setting its movment direction. This can
+    be done with :meth:`queue_snake_movement_direction`. The user will
+    use this method to queue which direction the snake will move, the
+    next time the snake takes a step. The queue allows the user
     to queue several steps ahead, which results in the game feeling
     more responsive when played.
 
