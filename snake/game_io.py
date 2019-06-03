@@ -2,6 +2,7 @@ from collections import deque
 import time
 import curses
 from threading import Thread, Lock
+import os
 
 
 class GameIO:
@@ -19,6 +20,13 @@ class GameIO:
 
     _view_speed : :class:`float`
         The time in seconds between each render.
+
+    _player_name : :class:`str`
+        The name of the player, used to write the name into the
+        :attr:`_score_file`.
+
+    _score_file : :class:`str`
+        The path to a file which keeps track of scores.
 
     _lock : :class:`threading.Lock`
         Because input and output is handled by separate threads but
@@ -52,7 +60,11 @@ class GameIO:
 
     """
 
-    def __init__(self, game, view_speed):
+    def __init__(self,
+                 game,
+                 view_speed,
+                 player_name='player',
+                 score_file='scores'):
         """
         Initializes an instance of :class:`GameIO`.
 
@@ -65,10 +77,19 @@ class GameIO:
         view_speed : :class:`float`
             The time in seconds between each render.
 
+        player_name : :class:`str`, optional
+            The name of the player, used to write the name into the
+            :attr:`_score_file`.
+
+        score_file : :class:`str`, optional
+            The path to a file which keeps track of scores.
+
         """
 
         self._game = game
         self._view_speed = view_speed
+        self._player_name = player_name
+        self._score_file = score_file
         self._lock = Lock()
         curses.wrapper(self._run)
 
@@ -96,8 +117,13 @@ class GameIO:
         curses.curs_set(0)
 
         # Create the game window.
-        width, height = self._game.get_board_size()
-        self._game_window = curses.newwin(height+2, width+2, 0, 0)
+        self._create_game_window()
+
+        # Create the score window.
+        self._create_score_window()
+
+        # Create the high scores window.
+        self._create_high_scores_window()
 
         # Start capturing input from the user.
         input_thread = Thread(target=self._capture_inputs)
@@ -111,6 +137,11 @@ class GameIO:
         # When the game stops, do a cleanup.
         self._cleanup()
         input_thread.join()
+
+        # Write the score to the score file.
+        score = len(self._game.get_snake())
+        with open(self._score_file, 'a') as f:
+            f.write(f'{self._player_name} {score}\n')
 
     def _render(self):
         """
@@ -137,6 +168,13 @@ class GameIO:
             self._game_window.addch(apple_y+1, apple_x+1, 'O')
 
             self._game_window.refresh()
+
+            # Write the score.
+            score = len(self._game.get_snake())
+            self._score_window.clear()
+            self._score_window.refresh()
+            self._score_window.addstr(0, 1, f'SCORE: {score}')
+            self._score_window.refresh()
 
     def _cleanup(self):
         """
@@ -191,3 +229,70 @@ class GameIO:
                 self._game.queue_snake_movement_direction('left')
             elif input_bytes == right:
                 self._game.queue_snake_movement_direction('right')
+
+    def _create_game_window(self):
+        """
+        Creates the window holding the game.
+
+        Returns
+        -------
+        None : :class:`NoneType`
+
+        """
+
+        width, height = self._game.get_board_size()
+        # Allow space for the border.
+        width, height = width+2, height+2
+        self._game_window = curses.newwin(height, width, 0, 0)
+
+    def _create_score_window(self):
+        """
+        Creates the window holding the player's current score.
+
+        Returns
+        -------
+        None : :class:`NoneType`
+
+        """
+
+        width, height = self._game.get_board_size()
+        # Allow space for the border.
+        width, height = width+2, height+2
+        self._score_window = curses.newwin(4, width, height, 0)
+
+    def _create_high_scores_window(self):
+        """
+        Creates the window holding the high scores.
+
+        Returns
+        -------
+        None : :class:`NoneType`
+
+        """
+
+        # Create the game window.
+        width, height = self._game.get_board_size()
+        # Allow space for the border.
+        width, height = width+2, height+2
+
+        self._high_scores_window = curses.newwin(32, 32, 0, width)
+        self._high_scores_window.border()
+        self._high_scores_window.addstr(1, 10, 'HIGH SCORES')
+        self._high_scores_window.addstr(2, 10, '-----------')
+
+        if os.path.exists(self._score_file):
+            with open(self._score_file, 'r') as f:
+                content = (
+                    (i, line.split()) for i, line in enumerate(f)
+                )
+                scores = sorted(
+                    ((score, i, name) for i, (name, score) in content),
+                    reverse=True
+                )
+
+            for i, (score, _, name) in enumerate(scores[:15]):
+                self._high_scores_window.addstr(4+i, 1, f'{i+1}.')
+                self._high_scores_window.addstr(4+i, 4, name)
+                self._high_scores_window.addstr(4+i, 14, score)
+
+        self._high_scores_window.refresh()

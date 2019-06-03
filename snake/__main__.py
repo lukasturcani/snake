@@ -44,8 +44,18 @@ def get_args():
     parser.add_argument(
         '--view_speed',
         type=float,
-        help='The amount of seconds between each redner.',
+        help='The amount of seconds between each render.',
         default=0.2
+    )
+    parser.add_argument(
+        '--player_name',
+        help='The name of the player.',
+        default='player'
+    )
+    parser.add_argument(
+        '--score_file',
+        help='The path to a file which stores player high scores.',
+        default='scores'
     )
 
     return parser.parse_args()
@@ -70,7 +80,9 @@ def main():
     game_thread.start()
     GameIO(
         game=game,
-        view_speed=args.view_speed
+        view_speed=args.view_speed,
+        player_name=args.player_name,
+        score_file=args.score_file
     )
     game_thread.join()
 
