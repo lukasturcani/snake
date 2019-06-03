@@ -405,7 +405,7 @@ class SnakeGame:
 
         Returns
         -------
-        body : :class:`tuple`
+        :class:`tuple`
             A :class:`tuple` of the following form
 
             .. code-block:: python
