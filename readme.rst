@@ -10,6 +10,8 @@ https://ltsnake.readthedocs.io.
 
 The game can be run from the command line with::
 
+    $ git clone https://github.com/lukasturcani/snake
+    $ cd snake
     $ python snake
 
 but options are available too, for more details see::
