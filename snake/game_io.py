@@ -281,18 +281,28 @@ class GameIO:
         self._high_scores_window.addstr(2, 10, '-----------')
 
         if os.path.exists(self._score_file):
-            with open(self._score_file, 'r') as f:
-                content = (
-                    (i, line.split()) for i, line in enumerate(f)
-                )
-                scores = sorted(
-                    ((score, i, name) for i, (name, score) in content),
-                    reverse=True
-                )
+            scores = sorted(self._get_scores(), reverse=True)
 
             for i, (score, _, name) in enumerate(scores[:15]):
                 self._high_scores_window.addstr(4+i, 1, f'{i+1}.')
                 self._high_scores_window.addstr(4+i, 4, name)
-                self._high_scores_window.addstr(4+i, 14, score)
+                self._high_scores_window.addstr(4+i, 14, f'{score}')
 
         self._high_scores_window.refresh()
+
+    def _get_scores(self):
+        """
+        Get the scores written in :attr:`_score_file`.
+
+        Yields
+        ------
+        :class:`tuple`
+            A :class:`tuple` holding the score, line number, and name,
+            respectively.
+
+        """
+
+        with open(self._score_file, 'r') as f:
+            for i, line in enumerate(f):
+                name, score = line.split()
+                yield int(score), i, name
