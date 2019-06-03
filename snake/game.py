@@ -344,9 +344,9 @@ class SnakeGame:
                 self._generate_new_apple()
         self.running = False
 
-    def get_velocity(self):
+    def get_snake_velocity(self):
         """
-        Returns the next step the snake will take.
+        Return the next step the snake will take.
 
         Returns
         -------
