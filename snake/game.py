@@ -218,10 +218,9 @@ class SnakeGame:
     contained loop and will not take input from the keyboard or
     display itself on the screen. The game is interacted with purely
     programatically. However, you can write code that captures keyboard
-    input and sends it to the game via the methods in this class. You
-    can also write code that looks at the state of the game, as
-    contained in this class, and writes it to the screen. This is what
-    :class:`.GameIO` does.
+    input and sends it to the game. You can also write code that looks
+    at the state of the game, as contained in this class, and writes
+    it to the screen. :class:`.GameIO` does both of these things.
 
     The snake is controlled by calling by setting its movment
     direction. This can be done with
