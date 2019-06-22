@@ -60,11 +60,13 @@ class GameIO:
 
     """
 
-    def __init__(self,
-                 game,
-                 view_speed,
-                 player_name='player',
-                 score_file='scores'):
+    def __init__(
+        self,
+        game,
+        view_speed,
+        player_name='player',
+        score_file='scores'
+    ):
         """
         Initializes an instance of :class:`GameIO`.
 
