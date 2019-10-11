@@ -247,19 +247,6 @@ class SnakeGame:
             pos for pos in board_positions if pos not in walls
         )
 
-    def is_running(self):
-        """
-        Return ``True`` if the game is running.
-
-        Returns
-        -------
-        :class:`bool`
-            ``True`` if the game is running.
-
-        """
-
-        return self._running
-
     def _get_new_apple(self):
         """
         Generate new :attr:`_apple` coordinates.
@@ -313,15 +300,33 @@ class SnakeGame:
 
         """
 
-        self._running = True
         while (
             not self._snake.hit(self._walls) and
             not self._snake.bite() and
             not self._snake.escape(self._board_size)
         ):
             self._take_step()
-            yield
-        self._running = False
+
+    def run_stepwise(self):
+        """
+        Run the game, but yield after every step.
+
+        Yields
+        ------
+        :class:`int`
+            The step number.
+
+        """
+
+        step_number = 0
+        while (
+            not self._snake.hit(self._walls) and
+            not self._snake.bite() and
+            not self._snake.escape(self._board_size)
+        ):
+            self._take_step()
+            step_number += 1
+            yield step_number
 
     def get_snake_velocity(self):
         """
