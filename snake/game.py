@@ -7,52 +7,24 @@ The only thing necessary to run a game of snake is :class:`.SnakeGame`.
 
 from collections import deque
 import random
-import time
 import itertools as it
 
-__all__ = ['SnakeGame']
 
-
-class Snake:
+class _Snake:
     """
     Represents a snake in the :class:`.SnakeGame`.
-
-    Attributes
-    ----------
-    body : :class:`collections.deque`
-        A :class:`deque` of the following form
-
-        .. code-block:: python
-
-            body = deque([
-                (0, 0),
-                (0, 1),
-                (0, 2)
-            ])
-
-        holding the coordinates of every body piece of the snake. The
-        snake's head is at the index ``-1`` while its tail is at the
-        index ``0``.
-
-    velocity : :class:`tuple`
-        A :class:`tuple` of the form ``(1, 0)``, which determines how
-        the position of the snakes's head changes at every step.
-
-    velocity_queue : :class:`collections.deque`
-        A :class:`deque` for the movement directions the snake will
-        take the next few times it moves.
 
     """
 
     def __init__(self):
         """
-        Initializes a :class:`Snake`.
+        Initializes a :class:`_Snake`.
 
         """
 
-        self.body = deque([(0, 0)])
-        self.velocity = (1, 0)
-        self.velocity_queue = deque([])
+        self._body = deque([(0, 0)])
+        self._velocity = (1, 0)
+        self._velocity_queue = deque([])
 
     def take_step(self):
         """
@@ -64,16 +36,16 @@ class Snake:
 
         """
 
-        if self.velocity_queue:
-            new_velocity = self.velocity_queue.popleft()
+        if self._velocity_queue:
+            new_velocity = self._velocity_queue.popleft()
             if self._valid_velocity(new_velocity):
-                self.velocity = new_velocity
+                self._velocity = new_velocity
 
-        head_x, head_y = self.body[-1]
-        velocity_x, velocity_y = self.velocity
+        head_x, head_y = self._body[-1]
+        velocity_x, velocity_y = self._velocity
         new_head = head_x + velocity_x, head_y + velocity_y
-        self.body.append(new_head)
-        self.body.popleft()
+        self._body.append(new_head)
+        self._body.popleft()
 
     def _valid_velocity(self, velocity):
         """
@@ -212,9 +184,10 @@ class Snake:
 
 class SnakeGame:
     """
-    Represent a game of snake.
+    Represents a game of snake.
 
-    The game can be run with :meth:`run`. The game runs in a self
+    The game can be run with :meth:`run`, or stepwise with
+    :meth:`take_step`. The game runs in a self
     contained loop and will not take input from the keyboard or
     display itself on the screen. The game is interacted with purely
     programatically. However, you can write code that captures keyboard
@@ -231,34 +204,6 @@ class SnakeGame:
 
     :class:`SnakeGame` can be initialized with walls, allowing the
     user to create a level.
-
-    Attributes
-    ----------
-    running : :class:`bool`
-        ``True`` if a game is running else ``False``.
-
-    _board_size : :class:`tuple`
-        A :class:`tuple` of the form ``(23, 12)`` which represents the
-        size of the board in the x and y directions.
-
-    _snake : :class:`.Snake`
-        Represents the snake.
-
-    _walls : :class:`frozenset`
-        A :class:`frozenset` of the form
-
-        .. code-block:: python
-
-            walls = {(0,2), (3, 4), (5,4)}
-
-        holding the coordinates of each bit of the walls.
-
-    _speed : :class:`float`
-        The number of seconds between each step.
-
-    _apple : :class:`tuple`
-        A :class:`tuple` of the form ``(21, 12)``, holding the
-        coordinates of the apple the snake is meant to eat.
 
     """
 
@@ -281,24 +226,41 @@ class SnakeGame:
 
             holding the coordinates of each bit of the walls.
 
-        speed : :class:`float`
-            The number of seconds between each step.
-
         random_seed : :class:`int`
             The random seed to be used with the game. Used to generate
-            random :attr:`_apple` coordinates.
+            apple locations.
 
         """
 
-        random.seed(random_seed)
-        self.running = False
+        self._generator = random.Random(random_seed)
+        self._running = False
         self._board_size = board_size
-        self._snake = Snake()
+        self._snake = _Snake()
         self._walls = walls
-        self._speed = speed
-        self._generate_new_apple()
+        self._apple = self._get_new_apple()
+        board_x, board_y = board_size
+        board_positions = it.product(
+            range(0, board_x),
+            range(0, board_y),
+        )
+        self._empty_positions = tuple(
+            pos for pos in board_positions if pos not in walls
+        )
 
-    def _generate_new_apple(self):
+    def is_running(self):
+        """
+        Return ``True`` if the game is running.
+
+        Returns
+        -------
+        :class:`bool`
+            ``True`` if the game is running.
+
+        """
+
+        return self._running
+
+    def _get_new_apple(self):
         """
         Generate new :attr:`_apple` coordinates.
 
@@ -308,16 +270,38 @@ class SnakeGame:
 
         """
 
-        # This is a terrible implementation performance-wise but it's
-        # pretty robust. It prevents the generation of the apple at the
-        # location of any walls or where snake currently is.
-        board_x, board_y = self._board_size
-        positions = it.product(range(0, board_x), range(0, board_y))
-        invalid_positions = self._walls | set(self._snake.body)
-        valid_positions = [
-            pos for pos in positions if pos not in invalid_positions
-        ]
-        self._apple = random.choice(valid_positions)
+        snake_body = self._snake.get_body()
+        valid_positions = (
+            pos for pos in self._empty_positions
+            if pos not in set(snake_body)
+        )
+        # The number of valid apple positions is given
+        # by the standard empty positions minus the length of the
+        # snake, as each bit of the snake must occupy an empty
+        # position.
+        max_index = len(self._empty_positions)-len(snake_body)-1
+        # Avoid looping through all the valid apple positions by
+        # generating the index of the chosen position ahead of time
+        # and returning as soon as the position with that index is
+        # found.
+        index = self._generator.randint(0, max_index)
+        for i, position in enumerate(valid_positions):
+            if i == index:
+                return position
+
+    def _take_step(self):
+        """
+        Take a single game step.
+
+        Returns
+        -------
+        None : :class:`NoneType`
+
+        """
+
+        self._snake.take_step()
+        if self._snake.eat(self._apple):
+            self._apple = self._generate_new_apple()
 
     def run(self):
         """
@@ -329,18 +313,15 @@ class SnakeGame:
 
         """
 
-        self.running = True
+        self._running = True
         while (
             not self._snake.hit(self._walls) and
             not self._snake.bite() and
             not self._snake.escape(self._board_size)
         ):
-            time.sleep(self._speed)
-            self._snake.take_step()
-
-            if self._snake.eat(self._apple):
-                self._generate_new_apple()
-        self.running = False
+            self._take_step()
+            yield
+        self._running = False
 
     def get_snake_velocity(self):
         """
@@ -372,7 +353,7 @@ class SnakeGame:
         ----------
         direction : :class:`str`
             Can be ``'up'``, ``'down'``, ``'right'`` or ``'left'`` to
-            signifiy the movement direction the snake will have the
+            signify the movement direction the snake will have the
             when it moves.
 
         Returns
@@ -421,7 +402,7 @@ class SnakeGame:
 
         """
 
-        return tuple(self._snake.body)
+        return self._snake.get_body()
 
     def get_walls(self):
         """
