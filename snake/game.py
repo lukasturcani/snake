@@ -187,7 +187,7 @@ class SnakeGame:
     Represents a game of snake.
 
     The game can be run with :meth:`run`, or stepwise with
-    :meth:`take_step`. The game runs in a self
+    :meth:`run_stepwise`. The game runs in a self
     contained loop and will not take input from the keyboard or
     display itself on the screen. The game is interacted with purely
     programatically. However, you can write code that captures keyboard
@@ -205,11 +205,39 @@ class SnakeGame:
     :class:`SnakeGame` can be initialized with walls, allowing the
     user to create a level.
 
+    If you want to interact with the game in an automated way
+    you can do something like
+
+    .. code-block:: python
+
+        def get_next_direction(game):
+            # This is a user-defined function which decides on the
+            # direction the snake should take on the next turn.
+
+            ...
+
+
+        def apply_action(game):
+            # This is a user-defined function which looks at the
+            # state of the game an decides on sending actions to it.
+
+            direction = get_next_direction(game)
+            game.queue_snake_movement_direction(direction)
+
+        game = SnakeGame(
+            board_size=(23, 34),
+            walls=frozenset({(1, 1), (2, 2), (3, 3)}),
+            random_seed=12,
+        )
+
+        for step_number in game.run_stepwise():
+            apply_action(game)
+
     """
 
-    def __init__(self, board_size, walls, speed, random_seed):
+    def __init__(self, board_size, walls, random_seed):
         """
-        Initializes a :class:`SnakeGame`.
+        Initialize a :class:`SnakeGame`.
 
         Parameters
         ----------
