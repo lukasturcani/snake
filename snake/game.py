@@ -261,7 +261,6 @@ class SnakeGame:
         """
 
         self._generator = random.Random(random_seed)
-        self._running = False
         self._board_size = board_size
         self._snake = _Snake()
         self._walls = walls
