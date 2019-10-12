@@ -34,6 +34,7 @@ class GameIO:
     def __init__(
         self,
         game,
+        speed=0.1,
         player_name='player',
         score_file='scores'
     ):
@@ -46,8 +47,8 @@ class GameIO:
             An instance of the snake game for which the io is being
             controlled.
 
-        view_speed : :class:`float`
-            The time in seconds between each render.
+        speed : :class:`float`
+            The time between game steps.
 
         player_name : :class:`str`, optional
             The name of the player, used to write the name into the
@@ -60,6 +61,7 @@ class GameIO:
 
         self._game = game
         self._player_name = player_name
+        self._speed = speed
         self._score_file = score_file
         self._lock = Lock()
         curses.wrapper(self._run)
@@ -80,8 +82,9 @@ class GameIO:
 
         """
 
+
         # Set up curses.
-        self.stdscr = stdscr
+        self._stdscr = stdscr
         stdscr.keypad(True)
         curses.noecho()
         curses.cbreak()
@@ -103,13 +106,14 @@ class GameIO:
         # While the game is running, render it.
         for step in self._game.run_stepwise():
             self._render()
+            time.sleep(self._speed)
 
         # When the game stops, do a cleanup.
         self._cleanup()
         input_thread.join()
 
         # Write the score to the score file.
-        score = len(self._game.get_snake())
+        score = self._game.get_snake_length()
         with open(self._score_file, 'a') as f:
             f.write(f'{self._player_name} {score}\n')
 
@@ -158,7 +162,7 @@ class GameIO:
 
         self._capturing_inputs = False
         curses.nocbreak()
-        self.stdscr.keypad(False)
+        self._stdscr.keypad(False)
         curses.echo()
         curses.endwin()
 

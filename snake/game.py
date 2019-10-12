@@ -246,6 +246,19 @@ class _Snake:
 
         return self._velocity_queue[step-1]
 
+    def get_length(self):
+        """
+        Return the length of the snake.
+
+        Returns
+        -------
+        :class:`int`
+            The length of the snake.
+
+        """
+
+        return len(self._body)
+
 
 class SnakeGame:
     """
@@ -353,7 +366,9 @@ class SnakeGame:
         # snake, as each bit of the snake and each wall must occupy an
         # empty position.
         board_size = board_x * board_y
-        max_index = board_size-len(self._walls)-len(snake_body)-1
+        max_index = (
+            board_size-len(self._walls)-self._snake.get_length()-1
+        )
         # Avoid looping through all the valid apple positions by
         # generating the index of the chosen position ahead of time
         # and returning as soon as the position with that index is
@@ -527,3 +542,16 @@ class SnakeGame:
         """
 
         return self._board_size
+
+    def get_snake_length(self):
+        """
+        Return the length of the snake.
+
+        Returns
+        -------
+        :class:`int`
+            The length of the snake.
+
+        """
+
+        return self._snake.get_length()

@@ -39,13 +39,7 @@ def get_args():
         '--speed',
         type=float,
         help='The amount of seconds between each step.',
-        default=0.5
-    )
-    parser.add_argument(
-        '--view_speed',
-        type=float,
-        help='The amount of seconds between each render.',
-        default=0.2
+        default=0.1
     )
     parser.add_argument(
         '--player_name',
@@ -72,7 +66,6 @@ def main():
     game = SnakeGame(
         board_size=tuple(args.board_size),
         walls=walls,
-        speed=args.speed,
         random_seed=args.random_seed
     )
 
@@ -80,7 +73,7 @@ def main():
     game_thread.start()
     GameIO(
         game=game,
-        view_speed=args.view_speed,
+        speed=args.speed,
         player_name=args.player_name,
         score_file=args.score_file
     )
