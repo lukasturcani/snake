@@ -18,7 +18,7 @@ class _Snake:
 
     def __init__(self):
         """
-        Initializes a :class:`_Snake`.
+        Initialize a :class:`_Snake`.
 
         """
 

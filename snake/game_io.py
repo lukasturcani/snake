@@ -17,17 +17,14 @@ class GameIO:
 
     .. code-block:: python
 
-        # Create a game and run it in its own thread.
         game = SnakeGame(
             board_size=(25, 25),
             walls=(),
             random_seed=12,
         )
 
-        # Take over IO.
-        GameIO(
-            game=game,
-        )
+        # Take over IO and run the game.
+        GameIO(game)
 
     """
 
@@ -68,7 +65,7 @@ class GameIO:
 
     def _run(self, stdscr):
         """
-        Starts the IO.
+        Run the game while handling IO.
 
         Parameters
         ----------
@@ -205,7 +202,7 @@ class GameIO:
 
     def _create_game_window(self):
         """
-        Creates the window holding the game.
+        Create the window holding the game.
 
         Returns
         -------
@@ -220,7 +217,7 @@ class GameIO:
 
     def _create_score_window(self):
         """
-        Creates the window holding the player's current score.
+        Create the window holding the player's current score.
 
         Returns
         -------
@@ -235,7 +232,7 @@ class GameIO:
 
     def _create_high_scores_window(self):
         """
-        Creates the window holding the high scores.
+        Create the window holding the high scores.
 
         Returns
         -------
