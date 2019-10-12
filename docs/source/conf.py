@@ -41,20 +41,19 @@ release = ''
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    'numpydoc'
 ]
 
 
-# Document __init__.
-def skip(app, what, name, obj, would_skip, options):
-    if name == "__init__":
-        return False
-    return would_skip
+autodoc_default_options = {
+    'special-members': '__init__',
+    'inherited-members': True,
+    'show-inheritance': True,
+}
 
 
-def setup(app):
-    app.connect("autodoc-skip-member", skip)
-
+add_module_names = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
