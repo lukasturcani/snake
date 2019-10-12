@@ -82,7 +82,6 @@ class GameIO:
 
         """
 
-
         # Set up curses.
         self._stdscr = stdscr
         stdscr.keypad(True)
@@ -144,7 +143,7 @@ class GameIO:
             self._game_window.refresh()
 
             # Write the score.
-            score = len(self._game.get_snake())
+            score = self._game.get_snake_length()
             self._score_window.clear()
             self._score_window.refresh()
             self._score_window.addstr(0, 1, f'SCORE: {score}')

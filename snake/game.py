@@ -390,7 +390,7 @@ class SnakeGame:
 
         self._snake.take_step()
         if self._snake.eat(self._apple):
-            self._apple = self._generate_new_apple()
+            self._apple = self._get_new_apple()
 
     def run(self):
         """

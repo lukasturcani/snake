@@ -4,7 +4,6 @@ Runs a game of snake.
 """
 
 import argparse
-from threading import Thread
 from game import SnakeGame
 from game_io import GameIO
 
@@ -69,15 +68,12 @@ def main():
         random_seed=args.random_seed
     )
 
-    game_thread = Thread(target=game.run)
-    game_thread.start()
     GameIO(
         game=game,
         speed=args.speed,
         player_name=args.player_name,
         score_file=args.score_file
     )
-    game_thread.join()
 
 
 if __name__ == '__main__':
