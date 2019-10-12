@@ -26,6 +26,19 @@ class _Snake:
         self._velocity = (1, 0)
         self._velocity_queue = deque([])
 
+    def get_body(self):
+        """
+        Yield the positions occupied by the snake.
+
+        Yields
+        ------
+        :class:`tuple`
+            The position of a segment of the snake's body.
+
+        """
+
+        yield from self._body
+
     def take_step(self):
         """
         Make the snake take a step.
@@ -76,7 +89,7 @@ class _Snake:
         valid = {
             (0, 1), (0, -1), (1, 0), (-1, 0)
         }
-        velocities = frozenset({velocity, self.velocity})
+        velocities = frozenset({velocity, self._velocity})
         return velocities not in invalid and velocity in valid
 
     def hit(self, walls):
@@ -102,7 +115,7 @@ class _Snake:
 
         """
 
-        return any(piece in walls for piece in self.body)
+        return any(piece in walls for piece in self._body)
 
     def bite(self):
         """
@@ -119,7 +132,7 @@ class _Snake:
         # If the snake has bitten itself, some of its body pieces
         # will overlap, which means duplicates will be present in
         # self.body.
-        return len(set(self.body)) != len(self.body)
+        return len(set(self._body)) != len(self._body)
 
     def escape(self, board_size):
         """
@@ -173,12 +186,12 @@ class _Snake:
 
         """
 
-        head_x, head_y = head = self.body[-1]
+        head_x, head_y = head = self._body[-1]
         ate = head == apple
         if ate:
-            velocity_x, velocity_y = self.velocity
+            velocity_x, velocity_y = self._velocity
             new_head = head_x + velocity_x, head_y + velocity_y
-            self.body.append(new_head)
+            self._body.append(new_head)
         return ate
 
 
@@ -226,7 +239,7 @@ class SnakeGame:
 
         game = SnakeGame(
             board_size=(23, 34),
-            walls=frozenset({(1, 1), (2, 2), (3, 3)}),
+            walls=((1, 1), (2, 2), (3, 3)),
             random_seed=12,
         )
 
@@ -245,14 +258,9 @@ class SnakeGame:
             A :class:`tuple` of the form ``(23, 12)`` which represents
             the size of the board in the x and y directions.
 
-        walls : :class:`frozenset`
-            A :class:`frozenset` of the form
-
-            .. code-block:: python
-
-                walls = {(0,2), (3, 4), (5,4)}
-
-            holding the coordinates of each bit of the walls.
+        walls : :class:`iterable` of :class:`tuple`
+            An :class:`iterable` holding the position of every
+            wall segment.
 
         random_seed : :class:`int`
             The random seed to be used with the game. Used to generate
@@ -263,16 +271,8 @@ class SnakeGame:
         self._generator = random.Random(random_seed)
         self._board_size = board_size
         self._snake = _Snake()
-        self._walls = walls
+        self._walls = frozenset(walls)
         self._apple = self._get_new_apple()
-        board_x, board_y = board_size
-        board_positions = it.product(
-            range(0, board_x),
-            range(0, board_y),
-        )
-        self._empty_positions = tuple(
-            pos for pos in board_positions if pos not in walls
-        )
 
     def _get_new_apple(self):
         """
@@ -280,20 +280,27 @@ class SnakeGame:
 
         Returns
         -------
-        None : :class:`NoneType`
+        :class:`tuple`
+            The position of a new apple.
 
         """
 
         snake_body = self._snake.get_body()
+        board_x, board_y = self._board_size
+        board_positions = it.product(
+            range(0, board_x),
+            range(0, board_y),
+        )
         valid_positions = (
-            pos for pos in self._empty_positions
-            if pos not in set(snake_body)
+            pos for pos in board_positions
+            if pos not in set(snake_body) and pos not in self._walls
         )
         # The number of valid apple positions is given
-        # by the standard empty positions minus the length of the
-        # snake, as each bit of the snake must occupy an empty
-        # position.
-        max_index = len(self._empty_positions)-len(snake_body)-1
+        # by the total board size minus the walls and the length of the
+        # snake, as each bit of the snake and each wall must occupy an
+        # empty position.
+        board_size = board_x * board_y
+        max_index = board_size-len(self._walls)-len(snake_body)-1
         # Avoid looping through all the valid apple positions by
         # generating the index of the chosen position ahead of time
         # and returning as soon as the position with that index is
@@ -355,23 +362,26 @@ class SnakeGame:
             step_number += 1
             yield step_number
 
-    def get_snake_velocity(self):
+    def get_snake_velocity(self, step=0):
         """
-        Return the next step the snake will take.
+        Return the step the snake will take.
+
+        Parameters
+        ----------
+        step : :class:`int`, optional
+            The step for which the velocity is returned. ``0`` is the
+            current step.
 
         Returns
         -------
         :class:`tuple`
             The :class:`tuple` can be one of ``(0, 1)``, ``(0, -1)``,
-            ``(1, 0)`` or ``(-1, 0)``, representing the next step the
+            ``(1, 0)`` or ``(-1, 0)``, representing the step the
             snake will take.
 
         """
 
-        if self._snake.velocity_queue:
-            return self._snake.velocity_queue[0]
-        else:
-            return self._snake.velocity
+        return self._snake.get_velocity(step)
 
     def queue_snake_movement_direction(self, direction):
         """
@@ -405,55 +415,37 @@ class SnakeGame:
         elif direction == 'left':
             velocity = (-1, 0)
 
-        if len(self._snake.velocity_queue) < 5:
-            self._snake.velocity_queue.append(velocity)
+        if len(self._snake.get_velocity_queue()) < 5:
+            self._snake.queue_velocity(velocity)
             return True
 
         return False
 
     def get_snake(self):
         """
-        Return the coordinates of the snake's body.
+        Yield the positions occupied by the snake.
 
-        Returns
-        -------
+        Yields
+        ------
         :class:`tuple`
-            A :class:`tuple` of the following form
-
-            .. code-block:: python
-
-                body = (
-                    (0, 0),
-                    (0, 1),
-                    (0, 2)
-                )
-
-            holding the coordinates of every body piece of the snake.
-            The snake's head is at the index ``-1`` while its tail is
-            at the index ``0``.
+            The position of a segment of the snake's body.
 
         """
 
-        return self._snake.get_body()
+        yield from self._snake.get_body()
 
     def get_walls(self):
         """
-        Return the coordinates of the walls.
+        Yield the coordinates of the walls.
 
-        Returns
-        -------
-        :class:`frozenset`
-            A :class:`frozenset` of the form
-
-            .. code-block:: python
-
-                walls = {(0,2), (3, 4), (5,4)}
-
-            holding the coordinates of each bit of the walls.
+        Yields
+        ------
+        :class:`tuple`
+            The position of a wall segment.
 
         """
 
-        return self._walls
+        yield from self._walls
 
     def get_apple(self):
         """
