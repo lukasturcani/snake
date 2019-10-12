@@ -8,5 +8,8 @@ setup(
     url='https://www.github.com/lukasturcani/snake',
     version='2019.06.03',
     packages=['snake'],
-    python_requires='>=3.6'
+    python_requires='>=3.6',
+    install_requires=[
+        'numpydoc',
+    ]
 )
