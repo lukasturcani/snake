@@ -194,6 +194,58 @@ class _Snake:
             self._body.append(new_head)
         return ate
 
+    def queue_velocity(self, velocity):
+        """
+        Queue a future snake velocity.
+
+        Parameters
+        ----------
+        velocity : :class:`tuple`
+            The velocity the snake should have.
+
+        Returns
+        -------
+        None : :class:`NoneType`
+
+        """
+
+        self._velocity_queue.append(velocity)
+
+    def get_num_queued_velocities(self):
+        """
+        Return the numbered of queued velocities.
+
+        Returns
+        -------
+        :class:`int`
+            The number of queued velocities.
+
+        """
+
+        return len(self._velocity_queue)
+
+    def get_velocity(self, step=0):
+        """
+        Get the velocity of the snake a step.
+
+        Parameters
+        ----------
+        step : :class:`int`, optional
+            The velocity at a given step. If ``0``then the current
+            velocity is returned.
+
+        Returns
+        -------
+        :class:`tuple
+            The velocity.
+
+        """
+
+        if step == 0:
+            return self._velocity
+
+        return self._velocity_queue[step-1]
+
 
 class SnakeGame:
     """
@@ -415,7 +467,7 @@ class SnakeGame:
         elif direction == 'left':
             velocity = (-1, 0)
 
-        if len(self._snake.get_velocity_queue()) < 5:
+        if self._snake.get_num_queued_velocities() < 5:
             self._snake.queue_velocity(velocity)
             return True
 
