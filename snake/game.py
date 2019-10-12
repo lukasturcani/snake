@@ -316,7 +316,7 @@ class SnakeGame:
 
     def __init__(self, board_size, walls, random_seed):
         """
-        Initialize a :class:`SnakeGame`.
+        Initialize a :class:`.SnakeGame`.
 
         Parameters
         ----------
