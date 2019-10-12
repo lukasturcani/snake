@@ -1,5 +1,4 @@
 """
-AAA.
 Holds the snake game.
 
 The only thing necessary to run a game of snake is :class:`.SnakeGame`.
