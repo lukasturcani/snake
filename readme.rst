@@ -1,5 +1,5 @@
 :Author: Lukas Turcani
-:Documentation: https://ltsnake.readthedocs.io
+:Documentation: https://lt-snake.readthedocs.io
 
 .. figure:: images/gameplay.gif
 
