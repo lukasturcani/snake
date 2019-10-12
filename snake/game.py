@@ -289,6 +289,7 @@ class SnakeGame:
             direction = get_next_direction(game)
             game.queue_snake_movement_direction(direction)
 
+
         game = SnakeGame(
             board_size=(23, 34),
             walls=((1, 1), (2, 2), (3, 3)),

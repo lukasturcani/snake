@@ -9,29 +9,8 @@ class GameIO:
     """
     Controls the game's input and output.
 
-    This class should simply by initialized, it won't return until the
+    This class should simply be initialized, it won't return until the
     :class:`.SnakeGame` has finished, see example below.
-
-    Attributes
-    ----------
-    _game : :class:`.SnakeGame`
-        An instance of the snake game for which the io is being
-        controlled.
-
-    _view_speed : :class:`float`
-        The time in seconds between each render.
-
-    _player_name : :class:`str`
-        The name of the player, used to write the name into the
-        :attr:`_score_file`.
-
-    _score_file : :class:`str`
-        The path to a file which keeps track of scores.
-
-    _lock : :class:`threading.Lock`
-        Because input and output is handled by separate threads but
-        in both cases through :mod:`curses`, this lock prevents race
-        conditions between the input and output.
 
     Examples
     --------
@@ -41,34 +20,25 @@ class GameIO:
         # Create a game and run it in its own thread.
         game = SnakeGame(
             board_size=(25, 25),
-            walls=frozenset(),
-            speed=0.2,
-            random_seed=12
+            walls=(),
+            random_seed=12,
         )
-
-        game_thread = Thread(target=game.run)
-        game_thread.start()
 
         # Take over IO.
         GameIO(
             game=game,
-            view_speed=0.2
         )
-
-        # Game should be finished now.
-        game_thread.join()
 
     """
 
     def __init__(
         self,
         game,
-        view_speed,
         player_name='player',
         score_file='scores'
     ):
         """
-        Initializes an instance of :class:`GameIO`.
+        Initialize an instance of :class:`GameIO`.
 
         Parameters
         ----------
@@ -89,7 +59,6 @@ class GameIO:
         """
 
         self._game = game
-        self._view_speed = view_speed
         self._player_name = player_name
         self._score_file = score_file
         self._lock = Lock()
@@ -132,9 +101,8 @@ class GameIO:
         input_thread.start()
 
         # While the game is running, render it.
-        while self._game.running:
+        for step in self._game.run_stepwise():
             self._render()
-            time.sleep(self._view_speed)
 
         # When the game stops, do a cleanup.
         self._cleanup()
