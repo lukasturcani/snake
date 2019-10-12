@@ -51,7 +51,7 @@ class _Snake:
 
         if self._velocity_queue:
             new_velocity = self._velocity_queue.popleft()
-            if self._valid_velocity(new_velocity):
+            if self._is_valid_velocity(new_velocity):
                 self._velocity = new_velocity
 
         head_x, head_y = self._body[-1]
@@ -60,7 +60,7 @@ class _Snake:
         self._body.append(new_head)
         self._body.popleft()
 
-    def _valid_velocity(self, velocity):
+    def _is_valid_velocity(self, velocity):
         """
         Check if `velocity` is valid.
 
@@ -134,7 +134,7 @@ class _Snake:
         # self.body.
         return len(set(self._body)) != len(self._body)
 
-    def escape(self, board_size):
+    def is_escaped(self, board_size):
         """
         Check is the snake has escaped the board.
 
@@ -152,17 +152,17 @@ class _Snake:
 
         """
 
-        min_x = min(x for x, y in self.body)
-        max_x = max(x for x, y in self.body)
-        min_y = min(y for x, y in self.body)
-        max_y = max(y for x, y in self.body)
+        min_x = min(x for x, y in self._body)
+        max_x = max(x for x, y in self._body)
+        min_y = min(y for x, y in self._body)
+        max_y = max(y for x, y in self._body)
 
         board_x, board_y = board_size
         return (
-            min_x < 0 or
-            min_y < 0 or
-            max_x >= board_x or
-            max_y >= board_y
+            min_x < 0
+            or min_y < 0
+            or max_x >= board_x
+            or max_y >= board_y
         )
 
     def eat(self, apple):
@@ -337,7 +337,7 @@ class SnakeGame:
         while (
             not self._snake.hit(self._walls) and
             not self._snake.bite() and
-            not self._snake.escape(self._board_size)
+            not self._snake.is_escaped(self._board_size)
         ):
             self._take_step()
 
@@ -356,7 +356,7 @@ class SnakeGame:
         while (
             not self._snake.hit(self._walls) and
             not self._snake.bite() and
-            not self._snake.escape(self._board_size)
+            not self._snake.is_escaped(self._board_size)
         ):
             self._take_step()
             step_number += 1
