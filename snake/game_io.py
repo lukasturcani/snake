@@ -124,8 +124,7 @@ class GameIO:
         """
 
         with self._lock:
-            self._game_window.clear()
-            self._game_window.refresh()
+            self._game_window.erase()
             self._game_window.border()
 
             for x, y in self._game.get_walls():
@@ -137,12 +136,9 @@ class GameIO:
             apple_x, apple_y = self._game.get_apple()
             self._game_window.addch(apple_y+1, apple_x+1, 'O')
 
-            self._game_window.refresh()
-
             # Write the score.
             score = self._game.get_snake_length()
-            self._score_window.clear()
-            self._score_window.refresh()
+            self._score_window.erase()
             self._score_window.addstr(0, 1, f'SCORE: {score}')
             self._score_window.refresh()
 
